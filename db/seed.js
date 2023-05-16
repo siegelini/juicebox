@@ -1,4 +1,4 @@
-const { client, getAllUsers, createUser } = require("./index");
+const { client, getAllUsers, createUser, updateUser } = require("./index");
 
 async function dropTables() {
   try {
@@ -23,7 +23,10 @@ async function createTables() {
       CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         username varchar(255) UNIQUE NOT NULL,
-        password varchar(255) NOT NULL
+        password varchar(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        location VARCHAR(255) NOT NULL,
+        active BOOLEAN DEFAULT true
       );
     `);
 
@@ -38,30 +41,30 @@ async function createInitialUsers() {
   try {
     console.log("Starting to create initial users...");
 
-    const albert = await createUser({
+    await createUser({
       username: "albert",
       password: "bertie99",
+      name: "Al Bert",
+      location: "alberta",
     });
-
-    console.log(albert);
-
-    const sandra = await createUser({
+    await createUser({
       username: "sandra",
       password: "2sandy4me",
+      name: "just sandra",
+      location: "sandy beach",
     });
-
-    console.log(sandra);
-
-    const glamgal = await createUser({
+    await createUser({
       username: "glamgal",
       password: "soglam",
+      name: "Frank",
+      location: "glamville",
     });
-
-    console.log(glamgal);
-
-    const radam = await createUser({ username: "radam", password: "nerdy" });
-
-    console.log(radam);
+    await createUser({
+      username: "radam",
+      password: "nerdy",
+      name: "Adam",
+      location: "Roanoke",
+    });
 
     console.log("Finished creating initial users!");
   } catch (error) {
@@ -86,9 +89,16 @@ async function testDB() {
   try {
     console.log("Starting to test databases...");
 
+    console.log("calling getAllUsers");
     const users = await getAllUsers();
+    console.log("Result:", users);
 
-    console.log("getAllUsers:", users);
+    console.log("Calling updateUser on users[0}");
+    const updateUserResult = await updateUser(users[0].id, {
+      name: "Newname Sogood",
+      location: "Lesterville, KY",
+    });
+    console.log("Result:", updateUserResult);
 
     console.log("Finished database tests!");
   } catch (error) {
