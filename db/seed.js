@@ -1,14 +1,24 @@
-const { client, getAllUsers, createUser, updateUser } = require("./index");
+const {
+  client,
+  getAllUsers,
+  createUser,
+  updateUser,
+  createPost,
+  updatePost,
+  getAllPosts,
+  getPostsByUser,
+  getUserById,
+} = require("./index");
 
 async function dropTables() {
   try {
     console.log("Starting to drop tables...");
 
     await client.query(`
-      DROP TABLE IF EXISTS users;
+      DROP TABLE IF EXISTS posts, users;
         `);
 
-    console.log("Finishined dropping tables!");
+    console.log("Finished dropping tables!");
   } catch (error) {
     console.error("Error dropping tables!");
     throw error;
@@ -26,6 +36,13 @@ async function createTables() {
         password varchar(255) NOT NULL,
         name VARCHAR(255) NOT NULL,
         location VARCHAR(255) NOT NULL,
+        active BOOLEAN DEFAULT true
+      );
+      CREATE TABLE posts (
+        id SERIAL PRIMARY KEY,
+        "authorId" INTEGER REFERENCES users(id) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        content TEXT NOT NULL,
         active BOOLEAN DEFAULT true
       );
     `);
@@ -69,6 +86,43 @@ async function createInitialUsers() {
     console.log("Finished creating initial users!");
   } catch (error) {
     console.error("Error creating initial users!");
+    throw error;
+  }
+}
+
+async function createInitialPosts() {
+  try {
+    const [albert, sandra, glamgal] = await getAllUsers();
+
+    await createPost({
+      authorId: albert.id,
+      title: "How I love to write",
+      content:
+        "This is my first post. I cannot figure any other thing that I love more than .. writing.",
+      tags: ["#happy", "#youcandoanything"],
+    });
+
+    await createPost({
+      authorId: sandra.id,
+      title: "How does this work?",
+      content: "Seriously, does this even do anything?",
+      tags: ["#happy", "#worst-day-ever"],
+    });
+
+    await createPost({
+      authorId: glamgal.id,
+      title: "Living the Glam Life",
+      content: "Do you even? I swear that half of you are posing.",
+      tags: ["#happy", "#youcandoanything", "#canmandoeverything"],
+    });
+
+    await createPost({
+      authorId: radam.id,
+      title: "Being a nerd is the raddest",
+      content: "Nerds will inherit the earth, let me tell you how...",
+      tags: ["#happy", "#candomorethaneveryone", "#nerdlove"],
+    });
+  } catch (error) {
     throw error;
   }
 }

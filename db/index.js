@@ -2,18 +2,24 @@ const { Client } = require("pg");
 const client = new Client("postgres://localhost:5432/juicebox-dev");
 
 async function getAllUsers() {
-  const { rows } = await client.query(
-    `SELECT id, username, name, location, active
+  try {
+    const { rows } = await client.query(
+      `SELECT id, username, name, location, active
         FROM users;
         `
-  );
+    );
 
-  return rows;
+    return rows;
+  } catch (error) {
+    throw error;
+  }
 }
 
 async function createUser({ username, password, name, location }) {
   try {
-    const { rows } = await client.query(
+    const {
+      rows: [user],
+    } = await client.query(
       `
           INSERT INTO users(username, password, name, location)
           VALUES ($1, $2, $3, $4)
@@ -23,7 +29,7 @@ async function createUser({ username, password, name, location }) {
       [username, password, name, location]
     );
 
-    return rows;
+    return user;
   } catch (error) {
     throw error;
   }
@@ -39,17 +45,79 @@ async function updateUser(id, fields = {}) {
   }
 
   try {
-    const result = await client.query(
+    const {
+      rows: [user],
+    } = await client.query(
       `
-    UPDATE users
-    SET ${setString}
-    WHERE id=$${Object.keys(fields).length + 1}
-    RETURNING id, username, password, name, location, active;
+      UPDATE users
+      SET ${setString}
+      WHERE id=${id}
+      RETURNING *;
     `,
-      [...Object.values(fields), id]
+      //[]
+      Object.values(fields)
     );
 
-    return result.rows[0];
+    return user;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function getAllPosts() {
+  try {
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function createPost({ authorId, title, content }) {
+  try {
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function updatePost(id, fields = {}) {
+  try {
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function getPostsByUser(userId) {
+  try {
+    const { rows } = await client.query(
+      `
+      SELECT * FROM posts
+      WHERE "authorId"=$1;
+    `,
+      [userId]
+    );
+
+    return rows;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function getUserById(userId) {
+  try {
+    const {
+      rows: [user],
+    } = await client.query(`
+    SELECT id, username, name, location, active
+    FROM users
+    WHERE id=${userId}
+    `);
+
+    if (!user) {
+      return null;
+    }
+
+    user.posts = await getPostsByUser(userId);
+
+    return user;
   } catch (error) {
     throw error;
   }
@@ -60,4 +128,9 @@ module.exports = {
   updateUser,
   getAllUsers,
   createUser,
+  createPost,
+  updatePost,
+  getAllPosts,
+  getPostsByUser,
+  getUserById,
 };
